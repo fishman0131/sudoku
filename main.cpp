@@ -7,6 +7,7 @@ using namespace std;
 int main()
 {
     int i;
+    bool rc;
     cout << "please enter the sudoku" << endl;
     int a[9][9];
     for(i=0; i<9; i++)
@@ -17,10 +18,13 @@ int main()
 
     Sudoku sudoku(a);
     chrono::steady_clock::time_point start = chrono::steady_clock::now();
-    sudoku.solve();
-    chrono::steady_clock::time_point end = chrono::steady_clock::now();  
-    sudoku.print_result();
-
+    rc = sudoku.solve();
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    if(rc)
+    {
+        sudoku.print_block();
+        sudoku.print_result();
+    }
     chrono::steady_clock::duration delta = end - start;
     cout << "It took " << std::chrono::duration_cast<std::chrono::microseconds>(delta).count() 
          << " microseconds." << endl;

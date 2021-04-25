@@ -19,8 +19,7 @@ class Sudoku
         for(i = 0; i < 9; i++)
             if(sudoku[row][i] == num)
                 return false;
-
-        //sudoku
+        //3*3 grid 
         for(i = (row/3)*3; i < (row/3+1)*3; i++)
             for(j = (col/3)*3; j < (col/3+1)*3; j++)
                 if(sudoku[i][j] == num)
@@ -47,9 +46,60 @@ class Sudoku
         return false;
     }
 
-public:
-    void solve()
+    /* A improvement which can cut the solving time spend in half,
+       work like some grid can get the answer number through contrasting
+       the number of row, col and 3*3 grid, and get more answer number 
+       through recursive way.
+    */
+    bool pretreatment()
     {
+        bool rc = true;
+        int step;
+        for(step = 0; step < 81; step++)
+        {
+            int row = step/9, col = step%9;
+            if(block[row][col] != 0)
+                continue;
+
+            int i, j, bit_num = 0x3fe;
+            //row
+            for(i = 0; i < 9; i++)
+                if(block[i][col] != 0)
+                    bit_num &= ~(1<<block[i][col]);
+            //col
+            for(i = 0; i < 9; i++)
+                if(block[row][i] != 0)
+                    bit_num &= ~(1<<block[row][i]);
+            //3*3 grid
+            for(i = (row/3)*3; i < (row/3+1)*3; i++)
+                for(j = (col/3)*3; j < (col/3+1)*3; j++)
+                    if(block[i][j] != 0)
+                        bit_num &= ~(1<<block[i][j]);
+
+            for(i = 1; i <= 9; i++)
+            {
+                if((bit_num & (1<<i)) == bit_num)
+                {
+                    block[row][col] = i;
+                    sudoku[row][col] = i;
+                    if(rc)
+                        rc = false;
+                    break;
+                }
+            }
+        }
+
+        if(!rc) 
+            return pretreatment();
+        else
+            return rc;
+    }
+
+public:
+    bool solve()
+    {
+        pretreatment();
+
         int step=0, row, col;
         while(step < 81)
         {
@@ -62,11 +112,31 @@ public:
                 sudoku[step/9][step%9] = 0;
                 do
                 {
-                    if(step > 0)
-                        step--;
+                    step--;
+                    if(step < 0)
+                    {
+                        cout << "This sudoku is unsolvable" << endl;
+                        return false;
+                    }
                 } while(block[step/9][step%9] != 0);
             }
         }
+        
+        return true;
+    }
+
+    void print_block()
+    {
+        int i, j;
+        for(i = 0; i < 9; i++)
+        {
+            for(j = 0; j < 9; j++)
+            {
+                cout << block[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
     }
 
     void print_result()
@@ -85,8 +155,6 @@ public:
 
     Sudoku(int in_soduko[9][9])
     {
-        memset(sudoku, 0, sizeof(sudoku));
-        memset(block, 0, sizeof(block));
         memcpy(sudoku, in_soduko, sizeof(sudoku));
         memcpy(block, in_soduko, sizeof(block));
     }
